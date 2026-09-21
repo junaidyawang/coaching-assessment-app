@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -69,6 +71,11 @@
         <button id="nav-report" onclick="switchTab('report')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-100 flex items-center gap-1.5">
           <i data-lucide="pie-chart" class="w-4 h-4"></i>
           <span>My Report</span>
+        </button>
+        <!-- QR Code Classroom Share Button -->
+        <button onclick="openQrModal()" class="px-3 py-1.5 rounded-lg text-sm font-semibold transition text-emerald-700 hover:bg-emerald-50 flex items-center gap-1.5 border border-emerald-200" title="Classroom QR Code">
+          <i data-lucide="qr-code" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">QR Code</span>
         </button>
         <!-- Facilitator Dashboard Button (Role-Gated) -->
         <button id="nav-facilitator" onclick="requestFacilitatorAccess()" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-purple-700 hover:bg-purple-50 flex items-center gap-1.5 border border-purple-200">
@@ -154,6 +161,53 @@
       <div class="flex items-center gap-2 pt-2">
         <button onclick="closeChangePinModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50">Cancel</button>
         <button onclick="saveNewFacilitatorPin()" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md">Save New PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal (For classroom projection & participant mobile scan) -->
+  <div id="qr-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 text-center">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <i data-lucide="qr-code" class="w-5 h-5"></i>
+          </div>
+          <div class="text-left">
+            <h3 class="text-base font-bold text-slate-900">Classroom Scan & Go</h3>
+            <p class="text-xs text-slate-400">Scan to open on smartphone</p>
+          </div>
+        </div>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Live QR Code Canvas Display -->
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 inline-block mx-auto shadow-inner">
+        <div id="qrcode-display" class="flex justify-center"></div>
+      </div>
+
+      <!-- Configurable Netlify / Web URL Input -->
+      <div class="space-y-2 text-left">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Assessment URL</label>
+        <div class="flex items-center gap-2">
+          <input type="url" id="qr-target-url" placeholder="https://your-site.netlify.app" class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" oninput="updateQrCodeFromInput()">
+          <button onclick="copyQrUrl()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span id="copy-btn-text">Copy</span>
+          </button>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Project this QR code on the classroom screen. Participants can point their phone camera to take the assessment instantly.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="downloadQrCode()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5">
+          <i data-lucide="download" class="w-4 h-4"></i> Download QR Image
+        </button>
+        <button onclick="closeQrModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50">Done</button>
       </div>
     </div>
   </div>
@@ -392,6 +446,9 @@
 
           <!-- Quick Action Buttons -->
           <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openQrModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5">
+              <i data-lucide="qr-code" class="w-4 h-4"></i> Project QR Code
+            </button>
             <button onclick="openChangePinModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5">
               <i data-lucide="key" class="w-4 h-4"></i> Change PIN
             </button>
@@ -541,8 +598,7 @@
 
   </main>
 
-  <!-- Load Data and Application Logic -->
-  <script src="data.js"></script>
+  <!-- Load Application Logic (with embedded Data Bank) -->
   <script src="app.js"></script>
   <script>
     // Initialize Lucide icons
