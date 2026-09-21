@@ -36,15 +36,46 @@
       body { background: white !important; color: black !important; }
       .print-shadow { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
     }
-    input[type=range]::-webkit-slider-thumb {
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      touch-action: pan-y;
+    }
+    /* Touch-friendly, high-contrast slider thumb */
+    input[type=range] {
+      -webkit-appearance: none;
       appearance: none;
-      height: 22px;
-      width: 22px;
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 8px;
+      outline: none;
+      touch-action: pan-x;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 32px;
+      width: 32px;
       border-radius: 50%;
       background: #2563eb;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      border: 2px solid white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+      border: 3px solid white;
+      transition: transform 0.1s ease;
+    }
+    input[type=range]:active::-webkit-slider-thumb {
+      transform: scale(1.15);
+      background: #1d4ed8;
+    }
+    input[type=range]::-moz-range-thumb {
+      height: 32px;
+      width: 32px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+      border: 3px solid white;
     }
   </style>
 </head>
@@ -474,15 +505,21 @@
               <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> How to setup Google Sheets in 2 mins
             </button>
           </div>
-          <div class="flex flex-col sm:flex-row gap-3">
-            <input type="url" id="sheet-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec (Google Apps Script Webhook URL)" class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            <button onclick="saveWebhookUrl()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-              <i data-lucide="save" class="w-4 h-4"></i> Save Webhook
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <input type="url" id="sheet-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec (Google Apps Script Webhook URL)" class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <button onclick="saveWebhookUrl()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i> Save
+            </button>
+            <button onclick="syncFromGoogleSheet()" id="btn-sync-sheet" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync from Sheet
             </button>
           </div>
-          <p id="webhook-status" class="text-xs text-slate-500">
-            When set, all participant submissions are automatically appended to your live Google Sheet.
-          </p>
+          <div class="flex items-center justify-between text-xs">
+            <p id="webhook-status" class="text-slate-500">
+              When set, all participant submissions are automatically appended to your live Google Sheet.
+            </p>
+            <span id="sync-feedback" class="font-semibold text-blue-600 hidden"></span>
+          </div>
 
           <!-- Collapsible Google Sheet Instructions -->
           <div id="sheet-instructions-box" class="hidden pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-2">
