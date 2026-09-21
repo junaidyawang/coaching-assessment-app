@@ -448,6 +448,10 @@ let quadrantChartInstance = null;
 let cohortBarChartInstance = null;
 let cohortRadarChartInstance = null;
 
+// Global Config: Shared Google Sheet Webhook URL
+// Automatically connects ALL participants & mobile phones with ZERO setup!
+const DEFAULT_GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbwKcM3EY3ATArwIGxuCJ2IzOu49ci20vhPYT3odznOU6eZ11JZ8y-cXRm5zEuWMaTi4qw/exec";
+
 // Role-Based State
 let isFacilitatorAuthenticated = false;
 const FACILITATOR_PIN = "1234";
@@ -1492,6 +1496,13 @@ function exportCohortCSV() {
 }
 
 // Google Sheets Sync Logic
+function getEffectiveWebhookUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramUrl = urlParams.get("sheet");
+  const storedUrl = localStorage.getItem("coaching_sheet_webhook_url");
+  return paramUrl || storedUrl || DEFAULT_GOOGLE_SHEET_WEBHOOK || "";
+}
+
 function saveWebhookUrl() {
   const url = document.getElementById("sheet-webhook-url").value.trim();
   localStorage.setItem("coaching_sheet_webhook_url", url);
@@ -1504,13 +1515,14 @@ function saveWebhookUrl() {
 }
 
 function loadSavedWebhookUrl() {
-  const url = localStorage.getItem("coaching_sheet_webhook_url");
+  const url = getEffectiveWebhookUrl();
   if (url) {
+    localStorage.setItem("coaching_sheet_webhook_url", url);
     const input = document.getElementById("sheet-webhook-url");
     if (input) input.value = url;
     const statusEl = document.getElementById("webhook-status");
     if (statusEl) {
-      statusEl.innerHTML = `<span class="text-emerald-600 font-semibold">✓ Webhook active. Submissions will stream into Google Sheets.</span>`;
+      statusEl.innerHTML = `<span class="text-emerald-600 font-semibold">✓ Connected to Google Sheet. Submissions stream automatically.</span>`;
     }
   }
 }
@@ -1521,7 +1533,7 @@ function toggleSheetInstructions() {
 }
 
 function sendToGoogleSheetWebhook(report) {
-  const webhookUrl = localStorage.getItem("coaching_sheet_webhook_url");
+  const webhookUrl = getEffectiveWebhookUrl();
   if (!webhookUrl) return;
 
   const payload = {
@@ -1557,12 +1569,12 @@ function sendToGoogleSheetWebhook(report) {
 
 // Pull live participant submissions directly from the connected Google Sheet into the dashboard
 function syncFromGoogleSheet() {
-  const webhookUrl = localStorage.getItem("coaching_sheet_webhook_url");
+  const webhookUrl = getEffectiveWebhookUrl();
   const feedbackEl = document.getElementById("sync-feedback");
   const syncBtn = document.getElementById("btn-sync-sheet");
 
   if (!webhookUrl) {
-    alert("Please save your Google Apps Script Webhook URL first.");
+    alert("Please enter or save your Google Apps Script Webhook URL first.");
     return;
   }
 
