@@ -1,0 +1,360 @@
+/**
+ * Assessment Data Bank
+ * Aligned with the 2x2 Conversation Matrix and Slide 20 Paradigm Shift Assessment
+ * 
+ * Distinct Archetypes:
+ * - COACH: Ask + Future/Solution (Helps client discover own answer, holds them accountable, focuses on present/future growth)
+ * - MENTOR: Tell + Future/Solution (Always ready with the answer, shares personal experience, wisdom, career guidance: "Here's what I did...")
+ * - CONSULTANT: Tell + Past/Problem (Evaluates situation, brings subject-matter expertise, diagnoses flaws and prescribes exact fix)
+ * - COUNSELOR: Ask + Past/Problem (Explores underlying emotional blocks, feelings, interpersonal history, and past root causes)
+ */
+
+const SCENARIOS = [
+  {
+    id: 1,
+    title: "Scenario 1: Missed Deadlines & Project Setback",
+    context: "A team lead comes to you visibly overwhelmed because their critical deliverable is two weeks behind schedule, and their stakeholders are escalating.",
+    question: "What is your primary instinct and approach in this conversation?",
+    options: [
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Tell them immediately how you resolved an almost identical crisis in your career, laying out the exact steps and playbook that worked for you so they have the answer ready.",
+        rationale: "Mentor has the answer based on personal wisdom and career guidance."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Ask thought-provoking questions about their ideal outcome: 'What outcome do you want to achieve by Friday, what options do you see, and which will you commit to executing?'",
+        rationale: "Coach helps them discover their own answer and holds them accountable."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Analyze their workflow bottlenecks, diagnose where the process failed, and formulate a corrective technical action plan for them to execute.",
+        rationale: "Consultant provides expertise to solve a specific problem."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Gently ask how they are coping internally: 'How have you been feeling carrying this pressure, and what underlying fears or team tensions are holding you back?'",
+        rationale: "Counselor explores feelings, past baggage, and deep root causes."
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Scenario 2: Cross-Departmental Friction",
+    context: "An employee complains that a peer in Marketing is constantly rejecting their proposals, leading to stalled work and frustration.",
+    question: "How do you respond to them?",
+    options: [
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Review the rejected proposal specifications, pinpoint the gaps in compliance or formatting, and tell them how to restructure the deck to meet Marketing's standards.",
+        rationale: "Consultant evaluates the situation and advises the technical solution."
+      },
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Give them the direct answer from your own experience: 'In our company culture, Marketing needs early alignment meetings before formal submission. Do this, talk to X first, and it will be approved.'",
+        rationale: "Mentor provides the answer and organizational wisdom directly."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Ask: 'What past interaction might have created this friction between you two, and how is this relational tension impacting your self-confidence?'",
+        rationale: "Counselor investigates relational dynamics, emotions, and past history."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Ask: 'If this partnership were running at its best 3 months from now, what would that look like? What is one constructive step you can initiate this week?'",
+        rationale: "Coach focuses on the future solution and invites personal ownership."
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "Scenario 3: Career Direction Dilemma",
+    context: "A high-potential professional asks: 'I don't know whether I should pursue people management or stay on the individual contributor technical track.'",
+    question: "When they ask for your help, what do you do?",
+    options: [
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Provide them with the answer based on your leadership journey: 'I faced this exact choice 8 years ago. Given the market trends and your potential, the management track will open executive doors. Here is the path to take.'",
+        rationale: "Mentor has the answer ready and dispenses career roadmaps."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Inquire deeply: 'When you reflect on the times you felt most fulfilled and energized at work, what were you doing? How does each pathway align with who you want to become?'",
+        rationale: "Coach asks to unlock self-discovery and internal motivation."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Explore: 'What anxieties or past doubts come up when you picture yourself stepping away from technical craft, and whose expectations are you trying to fulfill?'",
+        rationale: "Counselor uncovers deep emotional hesitations and internal conflict."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Prepare a comparative matrix of salary growth, headcount demand, and required competency benchmarks for both tracks so they can make a data-driven choice.",
+        rationale: "Consultant provides analytical expertise and structured data."
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Scenario 4: Team Disengagement & Low Morale",
+    context: "A supervisor notices their team seems unmotivated, quiet during meetings, and doing just the bare minimum.",
+    question: "How do you guide the supervisor?",
+    options: [
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Ask: 'What kind of culture do you want to cultivate in your team? What is one powerful question you can ask your team at your next standup to give them a voice?'",
+        rationale: "Coach focuses on future vision and co-creates forward actions."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Help them reflect: 'When did you first notice this energy drop? Could past unaddressed grievances or changes in leadership have broken the team's trust?'",
+        rationale: "Counselor dives into root causes, trust ruptures, and historical triggers."
+      },
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Give them the answer right away: 'Here is what worked for my teams every single time: institute Friday wins celebrations, establish open-door office hours, and share your vision weekly.'",
+        rationale: "Mentor provides battle-tested wisdom and answers directly."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Recommend administering an anonymous 10-question employee Net Promoter Score (eNPS) survey to pinpoint friction metrics and implement quarterly milestone bonuses.",
+        rationale: "Consultant prescribes diagnostic tools and organizational interventions."
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "Scenario 5: Handling High-Stakes Client Escalation",
+    context: "A team member comes to you in panic: 'A major client just called demanding a contract cancellation due to service downtime yesterday! What do I do?'",
+    question: "What is your immediate response?",
+    options: [
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Immediately hand them the solution: 'Don't worry, I handled this with Client Y last year. Pick up the phone, say exactly this, offer the 10% SLA credit, and schedule a face-to-face debrief. Here is the script.'",
+        rationale: "Mentor steps in with the exact answer and practical wisdom."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Conduct a root cause analysis of the downtime log, calculate the contractual SLA liability percentage, and write the formal Incident Response memorandum.",
+        rationale: "Consultant applies technical expertise to solve the contractual dispute."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Ask: 'Take a deep breath. What is the most critical outcome to preserve with this client? What are 2 viable approaches you can take right now to de-escalate?'",
+        rationale: "Coach calms the panic and empowers them to generate actionable options."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Ask: 'You seem very shaken. What fears are coming up for you regarding your standing with management, and how can we unpack that stress first?'",
+        rationale: "Counselor prioritizes emotional processing and emotional safety."
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "Scenario 6: Delegating a Complex Initiative",
+    context: "You are handing off a strategic quarterly initiative to a promising junior manager who hasn't managed such a scope before.",
+    question: "What does your kickoff conversation sound like?",
+    options: [
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Provide a detailed Project Charter, RACI matrix, Gantt chart, and standard operating procedures (SOP) that they must follow to ensure zero compliance errors.",
+        rationale: "Consultant supplies structured process guidelines and expert tools."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Clarify the end vision together, then ask: 'What resources and support do you need from me? How will you track progress, and how would you like us to review milestones?'",
+        rationale: "Coach establishes shared goals and lets coachee own execution."
+      },
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Sit with them and give them the benefit of your experience: 'Here are the 3 traps every new manager falls into on this project. Here is how I organized my steering committee, and here are the executive sponsors you must win over.'",
+        rationale: "Mentor shares personal lessons learned and prescriptive insights."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Ask: 'Stepping into this new level of visibility can be daunting. What past experiences with leadership make you feel confident or apprehensive?'",
+        rationale: "Counselor explores feelings of imposter syndrome and personal background."
+      }
+    ]
+  },
+  {
+    id: 7,
+    title: "Scenario 7: Struggling with Work-Life Balance",
+    context: "A high-performing staff member breaks down: 'I am constantly working past midnight, exhausted, and feeling like I'm failing both at home and at work.'",
+    question: "How do you navigate this discussion?",
+    options: [
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Listen with deep empathy and ask: 'What internal beliefs or past pressures drive you to feel you must be perfect? How is this exhaustion impacting your emotional well-being?'",
+        rationale: "Counselor deep-dives into emotional roots and personal pain points."
+      },
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Share your own past burnout story: 'I hit that exact wall in my fifth year. Here is the routine that saved me: turn off Slack at 7 PM, block calendar focus time, and learn to say no. Follow this model.'",
+        rationale: "Mentor offers personal life lessons and practical wisdom as the answer."
+      },
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Ask: 'What does a healthy, sustainable work-life rhythm look like for you? What is one boundary you are willing to set starting tomorrow to protect your evenings?'",
+        rationale: "Coach prompts future design and self-directed commitments."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Audit their weekly task breakdown, reallocate lower-priority tasks to other team members, and implement time-blocking software to optimize productivity.",
+        rationale: "Consultant fixes the operational schedule and work distribution."
+      }
+    ]
+  },
+  {
+    id: 8,
+    title: "Scenario 8: Innovation & Stagnant Idea Generation",
+    context: "During a brainstorming session, your team is stuck rehashing old, safe ideas instead of innovating for the next market cycle.",
+    question: "What is your conversation approach to stimulate breakthrough thinking?",
+    options: [
+      {
+        type: "coach",
+        badge: "Coach",
+        text: "Challenge the group with open inquiry: 'If we had zero budget or technology constraints, what outrageous solution would delight our customers? What assumptions can we shatter today?'",
+        rationale: "Coach unlocks creative possibilities through powerful open questioning."
+      },
+      {
+        type: "mentor",
+        badge: "Mentor",
+        text: "Step up and share the answer: 'Every time our company disrupted a category in the past, we applied this 3-pillar innovation framework. Let me walk you through how Steve Jobs and our founders approached it.'",
+        rationale: "Mentor tells inspiring case studies and provides the answer."
+      },
+      {
+        type: "consultant",
+        badge: "Consultant",
+        text: "Present a competitive benchmark report showing what industry leaders are doing and tell the team to adapt the top 3 emerging technical capabilities.",
+        rationale: "Consultant advises based on external industry best practices."
+      },
+      {
+        type: "counselor",
+        badge: "Counselor",
+        text: "Ask: 'What makes people here hesitant to propose radical ideas? Have past failures or criticisms created a climate where people fear looking foolish?'",
+        rationale: "Counselor examines past psychological safety barriers and fears."
+      }
+    ]
+  }
+];
+
+// Paradigm Shift Assessment Scales (1 to 10) directly from Slide 20
+const PARADIGM_SCALES = [
+  {
+    id: "scale_1",
+    leftLabel: "Focusing on staff weaknesses",
+    rightLabel: "Leveraging staff strengths",
+    category: "Mindset & Talent Orientation"
+  },
+  {
+    id: "scale_2",
+    leftLabel: "Solving all the problems yourself",
+    rightLabel: "Helping others solve & eliminate problems",
+    category: "Problem Solving Autonomy"
+  },
+  {
+    id: "scale_3",
+    leftLabel: "Giving advice & telling answers",
+    rightLabel: "Asking questions to draw out creative options",
+    category: "Inquiry vs. Advocacy (Ask vs Tell)"
+  },
+  {
+    id: "scale_4",
+    leftLabel: "Being a source of approval",
+    rightLabel: "Establishing a trustful partnership",
+    category: "Relationship & Safety"
+  },
+  {
+    id: "scale_5",
+    leftLabel: "Demonstrating your expertise",
+    rightLabel: "Being a role of excellence & facilitation",
+    category: "Ego vs. Facilitation"
+  },
+  {
+    id: "scale_6",
+    leftLabel: "Imposing your agenda on the coachee",
+    rightLabel: "Accepting that you are not in control",
+    category: "Control vs. Empowerment"
+  }
+];
+
+const COACHING_TIPS = [
+  {
+    category: "Listen 80%, Speak 20%",
+    title: "Embrace the Pause & Silence",
+    tip: "When you feel the urge to immediately 'give the answer' (Mentoring) or 'fix the problem' (Consulting), pause for 5 seconds. Ask: 'What does your instinct tell you to do first?'"
+  },
+  {
+    category: "Powerful Open-Ended Questions",
+    title: "Shift from 'Why' to 'What' and 'How'",
+    tip: "'Why' questions often put people on the defensive (Counseling past focus). Instead use: 'What outcome are you aiming for?' and 'What options haven't you considered yet?'"
+  },
+  {
+    category: "Holding Accountability",
+    title: "Close with Clear Ownership",
+    tip: "A true coaching conversation concludes with: 'By when will you do this?', 'How will I know you succeeded?', and 'What obstacle might derail you?'"
+  },
+  {
+    category: "Strengths Over Weaknesses",
+    title: "Anchor in Proven Strengths",
+    tip: "Instead of fixing weaknesses, ask: 'Which of your core strengths can you leverage right now to overcome this current hurdle?'"
+  },
+  {
+    category: "Surrendering Control",
+    title: "Trust the Coachee's Capability",
+    tip: "Accept that your coachee's solution may not look exactly like yours, but because they originated it, their commitment to execute will be 10x higher."
+  }
+];
+
+const PROFESSIONAL_QUOTES = [
+  {
+    quote: "Coaching is unlocking people's potential to maximize their own performance. It is helping them to learn rather than teaching them.",
+    author: "Sir John Whitmore",
+    role: "Pioneer of the GROW Coaching Model"
+  },
+  {
+    quote: "The leader of the past knew how to tell. The leader of the future will know how to ask.",
+    author: "Peter F. Drucker",
+    role: "Father of Modern Management"
+  },
+  {
+    quote: "In a coaching relationship, the client is the expert in their own life and work. The coach's role is not to dispense wisdom, but to hold the mirror and illuminate possibilities.",
+    author: "International Coaching Federation (ICF)",
+    role: "Global Standards Core Competency"
+  },
+  {
+    quote: "The opponent within one's own head is more formidable than the one on the other side of the net.",
+    author: "W. Timothy Gallwey",
+    role: "Author of The Inner Game of Work"
+  }
+];
