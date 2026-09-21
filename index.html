@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coaching & Conversation Style Assessment</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              coach: '#1e40af',      // Deep Blue
+              mentor: '#65a30d',     // Lime / Green
+              consultant: '#7e22ce', // Purple
+              counselor: '#d97706',  // Amber / Golden
+              dark: '#0f172a',
+              card: '#ffffff'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-shadow { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      height: 22px;
+      width: 22px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans antialiased">
+
+  <!-- Header & Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
+          <i data-lucide="compass" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 tracking-tight">Coaching & Conversation Style Assessment</h1>
+          <p class="text-xs text-slate-500">Discover whether you operate as Coach, Mentor, Consultant, or Counselor</p>
+        </div>
+      </div>
+
+      <nav class="flex items-center gap-1 sm:gap-2">
+        <button id="nav-assessment" onclick="switchTab('assessment')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition bg-blue-50 text-blue-700 flex items-center gap-1.5">
+          <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+          <span>Assessment</span>
+        </button>
+        <button id="nav-report" onclick="switchTab('report')" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-slate-600 hover:bg-slate-100 flex items-center gap-1.5">
+          <i data-lucide="pie-chart" class="w-4 h-4"></i>
+          <span>My Report</span>
+        </button>
+        <!-- Facilitator Dashboard Button (Role-Gated) -->
+        <button id="nav-facilitator" onclick="requestFacilitatorAccess()" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-purple-700 hover:bg-purple-50 flex items-center gap-1.5 border border-purple-200">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span id="nav-facilitator-text">Facilitator</span>
+          <span id="nav-facilitator-lock" class="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-mono">PIN</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Role Status Bar (Only visible when unlocked or subtle indicator) -->
+  <div id="role-banner" class="bg-slate-900 text-white text-xs py-1.5 px-4 no-print border-b border-slate-800">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>Active Mode: <strong id="current-role-label" class="text-blue-300 font-bold">Participant / Responder</strong></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="facilitator-mode-badge" class="hidden text-[11px] bg-purple-500/30 text-purple-200 border border-purple-400/40 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+          <i data-lucide="unlock" class="w-3 h-3"></i> Facilitator Mode Active
+        </span>
+        <button id="btn-lock-facilitator" onclick="lockFacilitatorMode()" class="hidden text-slate-400 hover:text-white underline text-[11px]">
+          Lock Facilitator Mode
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Facilitator PIN Modal -->
+  <div id="facilitator-pin-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95">
+      <div class="flex items-center justify-between">
+        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+        </div>
+        <button onclick="closeFacilitatorModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-slate-900">Facilitator Access</h3>
+        <p class="text-xs text-slate-500 mt-1">Please enter your facilitator passcode to unlock whole-group dashboard analytics.</p>
+      </div>
+      <div class="space-y-2">
+        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Passcode</label>
+        <input type="password" id="facilitator-pin-input" placeholder="Enter PIN" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono tracking-widest text-center text-lg" onkeydown="if(event.key==='Enter') verifyFacilitatorPin()">
+        <p id="pin-error-msg" class="text-xs text-red-600 hidden">Incorrect passcode. Please try again.</p>
+      </div>
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="closeFacilitatorModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50">Cancel</button>
+        <button onclick="verifyFacilitatorPin()" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md shadow-purple-600/20">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change PIN Modal (Facilitator Settings) -->
+  <div id="change-pin-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+          <i data-lucide="key" class="w-5 h-5 text-purple-600"></i>
+        </div>
+        <button onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-slate-900">Change Facilitator PIN</h3>
+        <p class="text-xs text-slate-500 mt-1">Set a custom passcode for accessing the facilitator dashboard.</p>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">New PIN</label>
+          <input type="password" id="new-pin-input" placeholder="e.g. 5678" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono tracking-widest text-center">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Confirm New PIN</label>
+          <input type="password" id="confirm-pin-input" placeholder="Re-enter PIN" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono tracking-widest text-center">
+        </div>
+        <p id="change-pin-msg" class="text-xs hidden"></p>
+      </div>
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="closeChangePinModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50">Cancel</button>
+        <button onclick="saveNewFacilitatorPin()" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md">Save New PIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- ==================== VIEW 1: ASSESSMENT ==================== -->
+    <div id="view-assessment" class="space-y-8">
+
+      <!-- Hero Introduction Banner (Clean, Neutral, No Spoilers) -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 max-w-3xl space-y-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Conversation Style Assessment
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Conversational Style & Leadership Diagnostic</h2>
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Every leader brings distinct natural instincts to conversations with team members. 
+            There are no right or wrong answers in this diagnostic. Please choose the option that most authentically reflects what you would naturally say or do in each situation.
+          </p>
+        </div>
+      </div>
+
+      <!-- Participant Profile Input -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-4">
+          <i data-lucide="user" class="w-5 h-5 text-blue-600"></i> Participant Details
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Your Name *</label>
+            <input type="text" id="participant-name" placeholder="e.g. Alex Johnson" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Email / ID</label>
+            <input type="email" id="participant-email" placeholder="alex@company.com" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Department / Cohort</label>
+            <input type="text" id="participant-dept" placeholder="Leadership Batch A" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50">
+          </div>
+        </div>
+      </div>
+
+      <!-- Part 1: Scenarios -->
+      <section class="space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div>
+            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">Part 1 of 2</span>
+            <h3 class="text-xl font-bold text-slate-900">Workplace Conversation Scenarios</h3>
+            <p class="text-sm text-slate-500">Select the option that most closely reflects how you instinctively show up in each conversation.</p>
+          </div>
+          <span id="scenarios-progress-badge" class="px-3 py-1 bg-slate-200 text-slate-700 text-xs font-semibold rounded-full">0 / 8 Completed</span>
+        </div>
+
+        <div id="scenarios-container" class="space-y-6">
+          <!-- Dynamically populated by app.js -->
+        </div>
+      </section>
+
+      <!-- Part 2: Paradigm Shift Assessment -->
+      <section class="space-y-6 pt-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div>
+            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Part 2 of 2 (Slide 20 Framework)</span>
+            <h3 class="text-xl font-bold text-slate-900">Activity: Paradigm Shift Assessment</h3>
+            <p class="text-sm text-slate-500">Rate your current default leadership behaviors along each 1 to 10 continuum.</p>
+          </div>
+          <span class="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">6 Dimensions</span>
+        </div>
+
+        <div id="paradigm-container" class="space-y-5 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+          <!-- Dynamically populated by app.js -->
+        </div>
+      </section>
+
+      <!-- Submission Button -->
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="text-sm text-slate-600">
+          <span class="font-bold text-slate-800">Ready to see your breakdown?</span> All responses are scored immediately to generate your personalized report.
+        </div>
+        <button onclick="calculateAndDisplayReport()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2">
+          <span>Generate My Individual Report</span>
+          <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 2: INDIVIDUAL REPORT ==================== -->
+    <div id="view-report" class="hidden space-y-8">
+      
+      <!-- Report Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Diagnostic Summary</span>
+            <span id="report-timestamp" class="text-xs text-slate-400">Date: --</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+            Individual Conversation Profile for <span id="report-participant-name" class="text-blue-600">Leader</span>
+          </h2>
+          <p class="text-sm text-slate-500 mt-0.5">Comprehensive assessment of your primary and secondary conversational approaches</p>
+        </div>
+
+        <div class="flex items-center gap-2 no-print">
+          <button onclick="window.print()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold flex items-center gap-2 transition">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Print / Save PDF</span>
+          </button>
+          <button onclick="switchTab('assessment')" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>Retake Assessment</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Primary Style Banner -->
+      <div id="primary-style-card" class="p-6 sm:p-8 rounded-3xl text-white shadow-xl transition-all">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Visual Charts Section: 2x2 Matrix & Distribution -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left: 2x2 Quadrant Visualizer -->
+        <div class="lg:col-span-7 bg-white p-6 sm:p-7 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="layout-grid" class="w-5 h-5 text-indigo-600"></i> The Conversation Matrix (Slide 20 Framework)
+            </h3>
+            <span class="text-xs text-slate-400">Your Centroid Position</span>
+          </div>
+          <p class="text-xs text-slate-500">
+            Horizontal axis measures focus (<strong class="text-slate-700">Past/Problem</strong> vs <strong class="text-slate-700">Future/Solution</strong>). Vertical axis measures approach (<strong class="text-slate-700">Tell/Advocate</strong> vs <strong class="text-slate-700">Ask/Inquire</strong>).
+          </p>
+
+          <!-- Quadrant Canvas Wrapper -->
+          <div class="relative w-full aspect-square max-h-[380px] mx-auto bg-slate-50 rounded-2xl border border-slate-200 p-2">
+            <canvas id="quadrantChart"></canvas>
+          </div>
+
+          <!-- Quadrant Legend Description -->
+          <div class="grid grid-cols-2 gap-2 text-xs pt-2">
+            <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/60">
+              <span class="font-bold text-blue-900 block">Top-Right: Coaching</span>
+              <span class="text-blue-700">Ask + Future/Solution. Co-creates answer, fosters accountability.</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-lime-50/70 border border-lime-200/60">
+              <span class="font-bold text-lime-900 block">Bottom-Right: Mentoring</span>
+              <span class="text-lime-700">Tell + Future/Solution. Always provides the answer & wisdom.</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/60">
+              <span class="font-bold text-amber-900 block">Top-Left: Counseling</span>
+              <span class="text-amber-700">Ask + Past/Problem. Deep dives into root causes & emotions.</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/60">
+              <span class="font-bold text-purple-900 block">Bottom-Left: Consulting</span>
+              <span class="text-purple-700">Tell + Past/Problem. Evaluates situation & prescribes expert fix.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Percentage Breakdown & Radar -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Percentage Breakdown Bars -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="percent" class="w-5 h-5 text-blue-600"></i> Approach Percentage Distribution
+            </h3>
+            <div id="percentage-bars-container" class="space-y-4">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+
+          <!-- Paradigm Shift Score Gauge -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Paradigm Shift Index
+              </h3>
+              <span id="paradigm-average-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">-- / 10</span>
+            </div>
+            <p class="text-xs text-slate-500">
+              Measures progression along the 6 core coaching dimensions (Slide 20: 1 = directive/telling, 10 = empowering/partnering).
+            </p>
+            <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div id="paradigm-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-700" style="width: 50%;"></div>
+            </div>
+            <div id="paradigm-breakdown-mini" class="text-xs text-slate-600 pt-1 space-y-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tips for Becoming a Good Coach -->
+      <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-blue-950 rounded-3xl p-7 sm:p-9 text-white shadow-xl space-y-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300">
+            <i data-lucide="lightbulb" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold tracking-tight">What to Consider to Become a Great Coach</h3>
+            <p class="text-xs sm:text-sm text-slate-300">Actionable behaviors to shift from giving the answer (Mentoring/Consulting) to drawing it out (Coaching)</p>
+          </div>
+        </div>
+
+        <div id="coaching-tips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Curated Professional Quote -->
+        <div id="report-quote-container" class="mt-6 pt-6 border-t border-slate-700/70">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 3: FACILITATOR DASHBOARD ==================== -->
+    <div id="view-facilitator" class="hidden space-y-8">
+
+      <!-- Header & Google Sheet Sync Config -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">Facilitator & Trainer Portal</span>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">Cohort Conversation Style Analysis</h2>
+            <p class="text-sm text-slate-500 mt-0.5">Aggregate insights, cohort majority archetype, and Google Sheets integration</p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openChangePinModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5">
+              <i data-lucide="key" class="w-4 h-4"></i> Change PIN
+            </button>
+            <button onclick="loadSampleCohortData()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5">
+              <i data-lucide="database" class="w-4 h-4"></i> Load Sample Cohort (15 Leaders)
+            </button>
+            <button onclick="exportCohortCSV()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="download" class="w-4 h-4"></i> Export Cohort CSV
+            </button>
+            <button onclick="clearCohortData()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition flex items-center gap-1.5">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Google Sheet Webhook Sync Configuration -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+              <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Google Sheets Webhook Connection
+            </div>
+            <button onclick="toggleSheetInstructions()" class="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1">
+              <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> How to setup Google Sheets in 2 mins
+            </button>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="url" id="sheet-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec (Google Apps Script Webhook URL)" class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <button onclick="saveWebhookUrl()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="save" class="w-4 h-4"></i> Save Webhook
+            </button>
+          </div>
+          <p id="webhook-status" class="text-xs text-slate-500">
+            When set, all participant submissions are automatically appended to your live Google Sheet.
+          </p>
+
+          <!-- Collapsible Google Sheet Instructions -->
+          <div id="sheet-instructions-box" class="hidden pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-2">
+            <p class="font-semibold text-slate-800">Quick 3-Step Setup for Google Sheets:</p>
+            <ol class="list-decimal pl-5 space-y-1">
+              <li>Open a new <a href="https://sheets.new" target="_blank" class="text-blue-600 underline font-semibold">Google Sheet</a>.</li>
+              <li>Go to <strong>Extensions &gt; Apps Script</strong>, paste the provided template code from <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-800">google_sheets_setup.js</code>, and click <strong>Deploy &gt; New deployment &gt; Web app</strong>.</li>
+              <li>Set <em>Who has access</em> to <strong>Anyone</strong>, copy the Web App URL, and paste it into the field above!</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cohort Summary Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Majority Card -->
+        <div class="bg-gradient-to-br from-blue-900 to-indigo-950 text-white p-5 rounded-2xl shadow-md border border-blue-800">
+          <div class="flex items-center justify-between text-xs text-blue-200">
+            <span>COHORT MAJORITY APPROACH</span>
+            <i data-lucide="crown" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div id="cohort-majority-title" class="text-2xl font-black mt-2 text-white">--</div>
+          <div id="cohort-majority-desc" class="text-xs text-blue-200 mt-1">Calculating from submissions...</div>
+        </div>
+
+        <!-- Total Submissions -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+            <span>TOTAL RESPONDENTS</span>
+            <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
+          </div>
+          <div id="cohort-count" class="text-2xl font-black text-slate-900 mt-2">0</div>
+          <div class="text-xs text-slate-400 mt-1">Participants scored in this session</div>
+        </div>
+
+        <!-- Group Coaching Readiness -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+            <span>AVG PARADIGM SHIFT</span>
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i>
+          </div>
+          <div id="cohort-avg-shift" class="text-2xl font-black text-emerald-600 mt-2">-- / 10</div>
+          <div class="text-xs text-slate-400 mt-1">Group transition to coaching mindset</div>
+        </div>
+
+        <!-- Ask vs Tell Ratio -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+            <span>ASK VS TELL BALANCE</span>
+            <i data-lucide="scale" class="w-4 h-4 text-purple-500"></i>
+          </div>
+          <div id="cohort-ask-tell-ratio" class="text-2xl font-black text-purple-700 mt-2">--</div>
+          <div class="text-xs text-slate-400 mt-1">Inquiry (Ask) vs Advocacy (Tell)</div>
+        </div>
+      </div>
+
+      <!-- Cohort Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Cohort Archetype Breakdown Bar/Donut -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-5 h-5 text-blue-600"></i> Cohort Archetype Distribution
+          </h3>
+          <div class="relative w-full aspect-video max-h-[300px]">
+            <canvas id="cohortBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Cohort Paradigm Shift 6 Dimensions Average -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="radar" class="w-5 h-5 text-indigo-600"></i> Cohort 6-Dimension Paradigm Profile
+          </h3>
+          <div class="relative w-full aspect-video max-h-[300px]">
+            <canvas id="cohortRadarChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Submissions Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="table" class="w-5 h-5 text-slate-600"></i> Individual Participant Log
+          </h3>
+          <span class="text-xs text-slate-400">Real-time Session Roster</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4 font-semibold">Name</th>
+                <th class="py-3 px-4 font-semibold">Dept / Cohort</th>
+                <th class="py-3 px-4 font-semibold">Dominant Archetype</th>
+                <th class="py-3 px-4 font-semibold text-center">Coach %</th>
+                <th class="py-3 px-4 font-semibold text-center">Mentor %</th>
+                <th class="py-3 px-4 font-semibold text-center">Consultant %</th>
+                <th class="py-3 px-4 font-semibold text-center">Counselor %</th>
+                <th class="py-3 px-4 font-semibold text-right">Paradigm Shift</th>
+              </tr>
+            </thead>
+            <tbody id="cohort-table-body" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Load Data and Application Logic -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
