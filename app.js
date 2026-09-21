@@ -800,47 +800,63 @@ function updateScenarioProgress() {
   }
 }
 
-// Render Paradigm Scales (Slide 20)
+// Render Paradigm Scales (Slide 20 - Mobile Optimized with Tap Buttons & Sliders)
 function renderParadigmScales() {
   const container = document.getElementById("paradigm-container");
   container.innerHTML = "";
 
   PARADIGM_SCALES.forEach((scale, index) => {
-    // Default value 6 (neutral/slightly forward)
     if (!paradigmValues[scale.id]) {
       paradigmValues[scale.id] = 6;
     }
 
     const item = document.createElement("div");
-    item.className = "p-4 sm:p-5 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3";
+    item.className = "p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/90 space-y-3.5";
     item.innerHTML = `
-      <div class="flex items-center justify-between text-xs">
-        <span class="font-bold uppercase tracking-wider text-purple-700">Dimension ${index + 1}: ${scale.category}</span>
-        <span id="scale-val-badge-${scale.id}" class="px-2.5 py-0.5 rounded-full font-bold bg-purple-100 text-purple-800 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-purple-700">Dimension ${index + 1}: ${scale.category}</span>
+        <span id="scale-val-badge-${scale.id}" class="px-2.5 py-1 rounded-full font-black bg-purple-600 text-white text-xs shadow-sm">
           Score: ${paradigmValues[scale.id]} / 10
         </span>
       </div>
 
-      <!-- Slider Labels (Left vs Right Poles from Slide 20) -->
-      <div class="flex items-center justify-between gap-4 text-xs font-semibold text-slate-700">
-        <div class="w-5/12 text-left text-slate-600 bg-white p-2 rounded-lg border border-slate-200">
-          <span class="text-[10px] text-slate-400 block font-normal">Score 1 (Directive / Control)</span>
-          ${scale.leftLabel}
+      <!-- Vertical Stack for Mobile, Row for Desktop -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 flex items-start gap-2 shadow-xs">
+          <span class="px-1.5 py-0.5 rounded bg-slate-100 font-mono font-bold text-[10px] text-slate-500 shrink-0">1</span>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Score 1 (Directive / Control)</span>
+            <span class="leading-tight">${scale.leftLabel}</span>
+          </div>
         </div>
-        <div class="w-2/12 text-center text-xs font-bold text-slate-400">↔</div>
-        <div class="w-5/12 text-right text-indigo-700 bg-white p-2 rounded-lg border border-indigo-200">
-          <span class="text-[10px] text-indigo-400 block font-normal">Score 10 (Empowering / Coaching)</span>
-          ${scale.rightLabel}
+        <div class="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80 text-indigo-950 flex items-start gap-2 shadow-xs">
+          <span class="px-1.5 py-0.5 rounded bg-indigo-100 font-mono font-bold text-[10px] text-indigo-600 shrink-0">10</span>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-indigo-500 block">Score 10 (Empowering / Coaching)</span>
+            <span class="leading-tight">${scale.rightLabel}</span>
+          </div>
         </div>
       </div>
 
-      <!-- Interactive 1-10 Step Slider -->
-      <div class="pt-2 px-1">
+      <!-- High-Touch Slider Control -->
+      <div class="pt-2 px-1 space-y-2">
         <input type="range" min="1" max="10" step="1" value="${paradigmValues[scale.id]}" 
-          class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          id="range-input-${scale.id}"
+          class="w-full cursor-pointer accent-blue-600"
           oninput="onParadigmInput('${scale.id}', this.value)">
-        <div class="flex justify-between text-[11px] text-slate-400 px-1 mt-1 font-mono">
-          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+
+        <!-- Tap-Friendly Number Grid for Instant Mobile Selection -->
+        <div class="grid grid-cols-10 gap-1 text-center pt-1" id="step-buttons-${scale.id}">
+          ${[1,2,3,4,5,6,7,8,9,10].map(num => `
+            <button type="button" onclick="setParadigmStep('${scale.id}', ${num})" 
+              class="step-btn-${scale.id} py-1.5 text-xs font-mono font-bold rounded-lg transition ${
+                paradigmValues[scale.id] === num 
+                  ? 'bg-blue-600 text-white shadow-sm ring-1 ring-blue-600' 
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }" data-step="${num}">
+              ${num}
+            </button>
+          `).join('')}
         </div>
       </div>
     `;
@@ -849,11 +865,33 @@ function renderParadigmScales() {
 }
 
 function onParadigmInput(scaleId, val) {
-  paradigmValues[scaleId] = parseInt(val, 10);
+  const numVal = parseInt(val, 10);
+  paradigmValues[scaleId] = numVal;
+  
   const badge = document.getElementById(`scale-val-badge-${scaleId}`);
   if (badge) {
     badge.textContent = `Score: ${val} / 10`;
   }
+
+  // Update step button highlights
+  const stepContainer = document.getElementById(`step-buttons-${scaleId}`);
+  if (stepContainer) {
+    const btns = stepContainer.querySelectorAll(`button`);
+    btns.forEach(btn => {
+      const step = parseInt(btn.getAttribute("data-step"), 10);
+      if (step === numVal) {
+        btn.className = `step-btn-${scaleId} py-1.5 text-xs font-mono font-bold rounded-lg transition bg-blue-600 text-white shadow-sm ring-1 ring-blue-600`;
+      } else {
+        btn.className = `step-btn-${scaleId} py-1.5 text-xs font-mono font-bold rounded-lg transition bg-white text-slate-600 hover:bg-slate-100 border border-slate-200`;
+      }
+    });
+  }
+}
+
+function setParadigmStep(scaleId, val) {
+  const rangeInput = document.getElementById(`range-input-${scaleId}`);
+  if (rangeInput) rangeInput.value = val;
+  onParadigmInput(scaleId, val);
 }
 
 // Calculate and Display Report
@@ -1515,4 +1553,48 @@ function sendToGoogleSheetWebhook(report) {
   }).catch(err => {
     console.warn("Could not dispatch to Google Sheet webhook:", err);
   });
+}
+
+// Pull live participant submissions directly from the connected Google Sheet into the dashboard
+function syncFromGoogleSheet() {
+  const webhookUrl = localStorage.getItem("coaching_sheet_webhook_url");
+  const feedbackEl = document.getElementById("sync-feedback");
+  const syncBtn = document.getElementById("btn-sync-sheet");
+
+  if (!webhookUrl) {
+    alert("Please save your Google Apps Script Webhook URL first.");
+    return;
+  }
+
+  feedbackEl.classList.remove("hidden");
+  feedbackEl.className = "font-semibold text-blue-600 text-xs";
+  feedbackEl.textContent = "Syncing from Google Sheet...";
+  syncBtn.disabled = true;
+
+  fetch(webhookUrl)
+    .then(res => res.json())
+    .then(data => {
+      syncBtn.disabled = false;
+      if (data && data.status === "success" && Array.isArray(data.participants)) {
+        if (data.participants.length === 0) {
+          feedbackEl.className = "font-semibold text-amber-600 text-xs";
+          feedbackEl.textContent = "Connected! Google Sheet has no submissions yet.";
+        } else {
+          cohortSubmissions = data.participants;
+          localStorage.setItem("coaching_cohort_data", JSON.stringify(cohortSubmissions));
+          renderFacilitatorDashboard();
+          feedbackEl.className = "font-semibold text-emerald-600 text-xs";
+          feedbackEl.textContent = `✓ Successfully synced ${data.participants.length} participant(s) from Google Sheets!`;
+        }
+      } else {
+        feedbackEl.className = "font-semibold text-red-600 text-xs";
+        feedbackEl.textContent = "Unexpected response from Google Sheet. Make sure Web App is deployed with access to 'Anyone'.";
+      }
+    })
+    .catch(err => {
+      syncBtn.disabled = false;
+      feedbackEl.className = "font-semibold text-red-600 text-xs";
+      feedbackEl.textContent = "Could not fetch from Google Sheet. Verify URL and Web App permissions.";
+      console.error("Google Sheets sync error:", err);
+    });
 }
